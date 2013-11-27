@@ -1,16 +1,16 @@
 CC=g++
-LDLIBS= -lcls
+LDLIBS=
 CXXFLAGS=-Wall -Wextra -pedantic
 GDB=-ggdb3
 VPATH=src
 AR=ar
 RM=rm -f
 
+LIB=libcls.a
 LIBOBJS=classifier.o
-OBJS=main.o
 
 TARGET=cls
-LIB=libcls.a
+OBJS=main.o $(LIB)
 
 all: $(LIB) $(TARGET)
 
