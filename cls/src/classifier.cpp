@@ -77,9 +77,62 @@ std::map<std::string, size_t> ontoMapping(const std::string &text, const std::ve
     return finalMapping;
 }
 
+class TermFinder {
+    std::string term;
+
+  public:
+    void set(std::string t) {
+        term = t;
+    }
+
+    bool operator()(std::string sentence) {
+        return (sentence.find(term) != std::string::npos);
+    }
+};
+
 std::string summarize(const std::string &text, const std::map<std::string, size_t> &terms) {
-    // TODO Find best matching sentences.
-    return text;
+    std::string summary;
+    std::vector<std::string> selectedTerms;
+    std::vector<std::string> sentences = split(text, '.');
+
+    const size_t maxSentences = 10;
+    size_t totalWeight = 0;
+
+    std::map<std::string, size_t>::const_iterator i;
+
+    for(i = terms.begin(); i != terms.end(); ++i) {
+        totalWeight += i->second;
+    }
+
+    double beta = 0.0;
+    i = terms.begin();
+
+    TermFinder termFinder;
+
+    for(size_t numSentences = 0; numSentences < maxSentences; ++numSentences) {
+        beta += ((double) (rand() % (2 * totalWeight))) / totalWeight;
+
+        do {
+            if(++i == terms.end()) {
+                i = terms.begin();
+            }
+
+            beta -= ((double) i->second) / totalWeight;
+        } while (beta > 0.0);
+
+        termFinder.set(i->first);
+
+        std::vector<std::string>::iterator sentence;
+        sentence = std::find_if(sentences.begin(), sentences.end(), termFinder);
+
+        if(sentence != sentences.end()) {
+            summary.append(*sentence);
+            summary.append(".");
+            sentences.erase(sentence);
+        }
+    }
+
+    return summary;
 }
 
 std::string findBest(const std::map<std::string, size_t> &terms) {
