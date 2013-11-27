@@ -1,8 +1,12 @@
 #ifndef __CLASSIFIER_HPP__
 #define __CLASSIFIER_HPP__
 
+#include <cassert>
+#include <algorithm>
 #include <map>
 #include <vector>
+#include <sstream>
+#include <cstring>
 #include <string>
 
 struct ClsResult {
@@ -12,6 +16,6 @@ struct ClsResult {
     std::string summary;
 };
 
-ClsResult* classify(std::string text, std::vector<std::string> terms);
+ClsResult* classify(const std::string &text, const std::vector<std::string> &terms);
 
 #endif //__CLASSIFIER_HPP__
