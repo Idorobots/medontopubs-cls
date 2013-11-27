@@ -10,12 +10,12 @@ LIBOBJS=classifier.o
 OBJS=main.o
 
 TARGET=cls
-LIB=libcls
+LIB=libcls.a
 
 all: $(LIB) $(TARGET)
 
 $(LIB) : $(LIBOBJS)
-	$(AR) rcu $@.a $<
+	$(AR) rcu $@ $<
 
 $(TARGET) : $(OBJS)
 	$(CC) $^ $(LDLIBS) -o $@
