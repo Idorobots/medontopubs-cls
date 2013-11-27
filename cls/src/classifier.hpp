@@ -16,6 +16,10 @@ struct ClsResult {
     std::string summary;
 };
 
+// Classify text using terms.
 ClsResult* classify(const std::string &text, const std::vector<std::string> &terms);
+
+// Classify text using terms disregarding letter case.
+ClsResult* iclassify(const std::string &text, const std::vector<std::string> &terms);
 
 #endif //__CLASSIFIER_HPP__

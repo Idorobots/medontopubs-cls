@@ -32,18 +32,29 @@ std::string readFile(std::string fileName) {
 }
 
 int main(int argc, char** argv) {
-    if(argc < 3) {
-        std::cout << argv[0] << " PUB.txt terms ...\n";
+    if(argc < 4) {
+        std::cout << "USAGE: " << argv[0] << " (i|s) PUB.txt terms ...\n";
         return 1;
     }
 
-    std::string text = readFile(argv[1]);
+    bool caseSensitive;
+    if(strncmp(argv[1], "i", 1) == 0) {
+        caseSensitive = false;
+    } else if (strncmp(argv[1], "s", 1) == 0) {
+        caseSensitive = true;
+    } else {
+        std::cout << "USAGE: " << argv[0] << " (i|s) PUB.txt terms ...\n";
+        return 1;
+    }
+
+    std::string text = readFile(argv[2]);
     std::vector<std::string> terms;
 
-    for(size_t i = 2; i < argc; ++i) {
+    for(size_t i = 3; i < argc; ++i) {
         terms.push_back(argv[i]);
     }
 
-    present(classify(text, terms));
+
+    present(caseSensitive ? classify(text, terms) : iclassify(text, terms));
     return 0;
 }

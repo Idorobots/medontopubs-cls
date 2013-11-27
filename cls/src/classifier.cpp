@@ -37,7 +37,7 @@ std::map<std::string, size_t> wordCount(const std::string &text) {
     std::vector<std::string>::iterator i;
 
     for(i = words.begin(); i != words.end(); ++i) {
-        mapping[toLower(*i)]++;
+        mapping[*i]++;
     }
 
     return mapping;
@@ -110,4 +110,12 @@ ClsResult* classify(const std::string &text, const std::vector<std::string> &ter
     result->summary = summarize(text, result->terms);
 
     return result;
+}
+
+ClsResult* iclassify(const std::string &text, const std::vector<std::string> &terms) {
+    std::string textCopy = text;
+    std::vector<std::string> termsCopy = terms;
+    toLower(textCopy);
+    std::transform(termsCopy.begin(), termsCopy.end(), termsCopy.begin(), ::toLower);
+    return classify(textCopy, termsCopy);
 }
