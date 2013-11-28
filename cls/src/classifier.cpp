@@ -122,7 +122,10 @@ std::string summarize(TermFinder &termFinder, const std::string &text, const std
     double beta = 0.0;
     i = terms.begin();
 
-    for(size_t numSentences = 0, numTerms = 0; numTerms < maxTerms && numSentences < maxSentences;) {
+    std::vector<std::string>::iterator lastSentence = sentences.begin();
+
+    for(size_t numSentences = 0, numTerms = 0;
+        numTerms < maxTerms && numSentences < maxSentences && lastSentence != sentences.end();) {
         ++numTerms;
 
         beta += ((double) (rand() % (2 * totalWeight))) / totalWeight;
@@ -137,7 +140,7 @@ std::string summarize(TermFinder &termFinder, const std::string &text, const std
 
         termFinder.set(i->first);
 
-        std::vector<std::string>::iterator sentence = sentences.begin();
+        std::vector<std::string>::iterator sentence = lastSentence;
         while(sentence != sentences.end()) {
             if(termFinder(*sentence)) break;
             ++sentence;
@@ -148,6 +151,7 @@ std::string summarize(TermFinder &termFinder, const std::string &text, const std
             summary.append(".");
             sentences.erase(sentence);
             ++numSentences;
+            lastSentence = sentence;
         }
     }
 
