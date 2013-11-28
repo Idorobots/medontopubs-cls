@@ -153,14 +153,18 @@ std::string findBest(const std::map<std::string, size_t> &terms) {
 ClsResult* classify(const std::string &text, const std::vector<std::string> &terms) {
     assert(terms.size() != 0);
 
+    std::map<std::string, size_t> mapping = ontoMapping(text, terms);
+
+    if(mapping.size() == 0) {
+        return NULL;
+    }
+
     ClsResult *result = new ClsResult();
 
-    result->terms = ontoMapping(text, terms);
-
-    result->bestTerm = findBest(result->terms);
-    result->maxScore = result->terms[result->bestTerm];
-
-    result->summary = summarize(text, result->terms);
+    result->terms = mapping;
+    result->bestTerm = findBest(mapping);
+    result->maxScore = mapping[result->bestTerm];
+    result->summary = summarize(text, mapping);
 
     return result;
 }
