@@ -111,6 +111,7 @@ std::string summarize(TermFinder &termFinder, const std::string &text, const std
 
     size_t maxSentences = std::max(5, std::min(20, (int) (0.1 * sentences.size())));
     size_t maxTerms = terms.size() * maxSentences;
+    size_t maxChunkSkip = 2 * sentences.size() / maxSentences;
     size_t totalWeight = 0;
 
     std::map<std::string, size_t>::const_iterator i;
@@ -141,12 +142,16 @@ std::string summarize(TermFinder &termFinder, const std::string &text, const std
         termFinder.set(i->first);
 
         std::vector<std::string>::iterator sentence = lastSentence;
-        while(sentence != sentences.end()) {
+        size_t chunkSkip = maxChunkSkip;
+
+        while(chunkSkip != 0 && sentence != sentences.end()) {
             if(termFinder(*sentence)) break;
             ++sentence;
+            // NOTE This guy here makes sure we won't skip too big of a chunk of text an once.
+            --chunkSkip;
         }
 
-        if(sentence != sentences.end()) {
+        if(chunkSkip != 0 && sentence != sentences.end()) {
             summary.append(*sentence);
             summary.append(".");
             ++numSentences;
