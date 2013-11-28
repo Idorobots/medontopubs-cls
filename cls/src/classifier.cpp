@@ -78,19 +78,34 @@ std::map<std::string, size_t> ontoMapping(const std::string &text, const std::ve
 }
 
 class TermFinder {
+  protected:
     std::string term;
 
   public:
-    void set(std::string t) {
+    virtual void set(std::string t) {
         term = t;
     }
 
-    bool operator()(std::string sentence) {
+    virtual bool operator()(std::string sentence) {
         return (sentence.find(term) != std::string::npos);
     }
 };
 
-std::string summarize(const std::string &text, const std::map<std::string, size_t> &terms) {
+class ITermFinder : public TermFinder {
+  public:
+    virtual void set(std::string t) {
+        term = t;
+        toLower(term);
+    }
+
+    virtual bool operator()(std::string sentence) {
+        std::string copy = sentence;
+        toLower(copy);
+        return (copy.find(term) != std::string::npos);
+    }
+};
+
+std::string summarize(TermFinder &termFinder, const std::string &text, const std::map<std::string, size_t> &terms) {
     std::string summary;
     std::vector<std::string> selectedTerms;
     std::vector<std::string> sentences = split(text, '.');
@@ -107,8 +122,6 @@ std::string summarize(const std::string &text, const std::map<std::string, size_
     double beta = 0.0;
     i = terms.begin();
 
-    TermFinder termFinder;
-
     for(size_t numSentences = 0; numSentences < maxSentences; ++numSentences) {
         beta += ((double) (rand() % (2 * totalWeight))) / totalWeight;
 
@@ -122,8 +135,11 @@ std::string summarize(const std::string &text, const std::map<std::string, size_
 
         termFinder.set(i->first);
 
-        std::vector<std::string>::iterator sentence;
-        sentence = std::find_if(sentences.begin(), sentences.end(), termFinder);
+        std::vector<std::string>::iterator sentence = sentences.begin();
+        while(sentence != sentences.end()) {
+            if(termFinder(*sentence)) break;
+            ++sentence;
+        }
 
         if(sentence != sentences.end()) {
             summary.append(*sentence);
@@ -150,7 +166,7 @@ std::string findBest(const std::map<std::string, size_t> &terms) {
     return best;
 }
 
-ClsResult* classify(const std::string &text, const std::vector<std::string> &terms) {
+ClsResult* classifyImpl(const std::string &text, const std::vector<std::string> &terms) {
     assert(terms.size() != 0);
 
     std::map<std::string, size_t> mapping = ontoMapping(text, terms);
@@ -164,7 +180,19 @@ ClsResult* classify(const std::string &text, const std::vector<std::string> &ter
     result->terms = mapping;
     result->bestTerm = findBest(mapping);
     result->maxScore = mapping[result->bestTerm];
-    result->summary = summarize(text, mapping);
+    result->summary = "";
+
+    return result;
+}
+
+ClsResult* classify(const std::string &text, const std::vector<std::string> &terms) {
+    ClsResult *result = classifyImpl(text, terms);
+    if(result == NULL) {
+        return NULL;
+    }
+
+    TermFinder tf;
+    result->summary = summarize(tf, text, result->terms);
 
     return result;
 }
@@ -174,5 +202,14 @@ ClsResult* iclassify(const std::string &text, const std::vector<std::string> &te
     std::vector<std::string> termsCopy = terms;
     toLower(textCopy);
     std::transform(termsCopy.begin(), termsCopy.end(), termsCopy.begin(), ::toLower);
-    return classify(textCopy, termsCopy);
+
+    ClsResult *result = classifyImpl(textCopy, termsCopy);
+    if(result == NULL) {
+        return NULL;
+    }
+
+    ITermFinder tf;
+    result->summary = summarize(tf, text, result->terms);
+
+    return result;
 }
