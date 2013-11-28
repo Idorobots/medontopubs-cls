@@ -68,7 +68,7 @@ std::map<std::string, size_t> ontoMapping(const std::string &text, const std::ve
                 }
             }
 
-            if(score != 0) {
+            if((score != 0) && (text.find(*i) != std::string::npos)) {
                 finalMapping[*i] = score;
             }
         }
