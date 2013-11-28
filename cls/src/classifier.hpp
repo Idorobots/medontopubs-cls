@@ -22,4 +22,7 @@ ClsResult* classify(const std::string &text, const std::vector<std::string> &ter
 // Classify text using terms disregarding letter case.
 ClsResult* iclassify(const std::string &text, const std::vector<std::string> &terms);
 
+// Used to seed the rng of the summarizer.
+void classifySeed(size_t seed);
+
 #endif //__CLASSIFIER_HPP__

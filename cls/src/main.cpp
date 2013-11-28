@@ -54,7 +54,7 @@ int main(int argc, char** argv) {
         terms.push_back(argv[i]);
     }
 
-
+    classifySeed(time(NULL));
     present(caseSensitive ? classify(text, terms) : iclassify(text, terms));
     return 0;
 }

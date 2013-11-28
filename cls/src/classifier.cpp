@@ -107,10 +107,10 @@ class ITermFinder : public TermFinder {
 
 std::string summarize(TermFinder &termFinder, const std::string &text, const std::map<std::string, size_t> &terms) {
     std::string summary;
-    std::vector<std::string> selectedTerms;
     std::vector<std::string> sentences = split(text, '.');
 
-    const size_t maxSentences = 10;
+    size_t maxSentences = std::max(5, std::min(20, (int) (0.1 * sentences.size())));
+    size_t maxTerms = terms.size() * maxSentences;
     size_t totalWeight = 0;
 
     std::map<std::string, size_t>::const_iterator i;
@@ -122,7 +122,9 @@ std::string summarize(TermFinder &termFinder, const std::string &text, const std
     double beta = 0.0;
     i = terms.begin();
 
-    for(size_t numSentences = 0; numSentences < maxSentences; ++numSentences) {
+    for(size_t numSentences = 0, numTerms = 0; numTerms < maxTerms && numSentences < maxSentences;) {
+        ++numTerms;
+
         beta += ((double) (rand() % (2 * totalWeight))) / totalWeight;
 
         do {
@@ -145,6 +147,7 @@ std::string summarize(TermFinder &termFinder, const std::string &text, const std
             summary.append(*sentence);
             summary.append(".");
             sentences.erase(sentence);
+            ++numSentences;
         }
     }
 
@@ -212,4 +215,8 @@ ClsResult* iclassify(const std::string &text, const std::vector<std::string> &te
     result->summary = summarize(tf, text, result->terms);
 
     return result;
+}
+
+void classifySeed(size_t seed) {
+    srand(seed);
 }
