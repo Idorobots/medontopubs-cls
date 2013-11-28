@@ -149,9 +149,8 @@ std::string summarize(TermFinder &termFinder, const std::string &text, const std
         if(sentence != sentences.end()) {
             summary.append(*sentence);
             summary.append(".");
-            sentences.erase(sentence);
             ++numSentences;
-            lastSentence = sentence;
+            lastSentence = ++sentence;
         }
     }
 
