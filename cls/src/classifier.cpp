@@ -177,6 +177,10 @@ std::string findBest(const std::map<std::string, size_t> &terms) {
     return best;
 }
 
+bool pairCompare(const std::pair<std::string, double> &a, const std::pair<std::string, double> &b) {
+    return (a.second > b.second);
+}
+
 std::vector<std::pair<std::string, double> > toPairVector(const std::map<std::string, size_t> &map) {
     std::vector<std::pair<std::string, double> > vec;
     std::map<std::string, size_t>::const_iterator i;
@@ -184,6 +188,7 @@ std::vector<std::pair<std::string, double> > toPairVector(const std::map<std::st
         vec.push_back(std::make_pair(i->first, (double) i->second));
     }
 
+    std::sort(vec.begin(), vec.end(), &pairCompare);
     return vec;
 }
 
