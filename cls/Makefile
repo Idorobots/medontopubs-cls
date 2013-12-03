@@ -7,10 +7,10 @@ AR=ar
 RM=rm -f
 
 LIB=libcls.a
-LIBOBJS=classifier.o
+LIBOBJS=util.o classifier.o
 
 TARGET=cls
-OBJS=main.o $(LIB)
+OBJS=main.o $(LIBOBJS)
 
 all: $(LIB) $(TARGET)
 

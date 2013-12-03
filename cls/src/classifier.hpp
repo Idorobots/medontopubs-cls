@@ -1,27 +1,32 @@
 #ifndef __CLASSIFIER_HPP__
 #define __CLASSIFIER_HPP__
 
-#include <cassert>
 #include <algorithm>
 #include <map>
 #include <vector>
-#include <sstream>
-#include <cstring>
 #include <string>
-#include <utility>
+#include "util.hpp"
 
-struct ClsResult {
-    std::vector<std::pair<std::string, double> > terms;
-    double maxScore;
-    std::string bestTerm;
+struct Term {
+    std::string label;
+    double probability;
+
+    Term(std::string l, double p) : label(l), probability(p) {
+    }
+};
+
+struct Classification {
+    std::vector<Term> terms;
     std::string summary;
 };
 
 // Classify text using terms.
-ClsResult* classify(const std::string &text, const std::map<std::string, size_t> &terms);
+Classification* classify(const std::string &text, const std::map<std::string, size_t> &terms);
 
 // Classify text using terms disregarding letter case.
-ClsResult* iclassify(const std::string &text, const std::map<std::string, size_t> &terms);
+Classification* iclassify(const std::string &text, const std::map<std::string, size_t> &terms);
+
+typedef Classification ClsResult; // FIXME Deprecated.
 
 // Used to seed the rng of the summarizer.
 void classifySeed(size_t seed);

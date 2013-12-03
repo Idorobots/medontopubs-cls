@@ -1,35 +1,5 @@
 #include "classifier.hpp"
 
-std::vector<std::string> &split(const std::string &s, char delim, std::vector<std::string> &elems) {
-    std::stringstream ss(s);
-    std::string item;
-    while (std::getline(ss, item, delim)) {
-        if(item.size() > 0) {
-            elems.push_back(item);
-        }
-    }
-    return elems;
-}
-
-std::vector<std::string> split(const std::string &s, char delim) {
-    std::vector<std::string> elems;
-    split(s, delim, elems);
-    return elems;
-}
-
-std::string replace(std::string &s, const char* what, const char* toWhat, size_t len) {
-    for(size_t i = 0; i < len; ++i) {
-        std::replace(s.begin(), s.end(), what[i], toWhat[i]);
-    }
-
-    return s;
-}
-
-std::string toLower(std::string &s) {
-    std::transform(s.begin(), s.end(), s.begin(), ::tolower);
-    return s;
-}
-
 template <typename T>
 std::map<std::string, double> normalize(const std::map<std::string, T> &mapping) {
     double totalProb = 0.0;
@@ -57,6 +27,23 @@ std::map<std::string, size_t> saturate(const std::map<std::string, size_t> &mapp
     }
 
     return newMapping;
+}
+
+bool termCompare(const Term &a, const Term &b) {
+    return (a.probability > b.probability);
+}
+
+std::vector<Term > toTermVector(const std::map<std::string, double> &map) {
+    std::vector<Term> vec;
+    vec.reserve(map.size());
+
+    std::map<std::string, double>::const_iterator i;
+    for(i = map.begin(); i != map.end(); ++i) {
+        vec.push_back(Term(i->first, i->second));
+    }
+
+    std::sort(vec.begin(), vec.end(), &termCompare);
+    return vec;
 }
 
 std::map<std::string, double> wordCount(const std::string &text, size_t smoothing) {
@@ -122,46 +109,18 @@ std::map<std::string, double> ontoMapping(const std::string &text, const std::ma
     return normalize(finalMapping);
 }
 
-class TermFinder {
-  protected:
-    std::string term;
-
-  public:
-    virtual void set(std::string t) {
-        term = t;
-    }
-
-    virtual bool operator()(std::string sentence) {
-        return (sentence.find(term) != std::string::npos);
-    }
-};
-
-class ITermFinder : public TermFinder {
-  public:
-    virtual void set(std::string t) {
-        term = t;
-        toLower(term);
-    }
-
-    virtual bool operator()(std::string sentence) {
-        std::string copy = sentence;
-        toLower(copy);
-        return (copy.find(term) != std::string::npos);
-    }
-};
-
-std::string summarize(TermFinder &termFinder, const std::string &text, const std::vector<std::pair<std::string, double> > &terms) {
+std::string summarize(TermFinder &termFinder, const std::string &text, const std::vector<Term> &terms) {
     std::string summary;
     std::vector<std::string> sentences = split(text, '.');
 
     size_t maxSentences = std::max(5, std::min(20, (int) (0.1 * sentences.size())));
     size_t maxTerms = terms.size() * maxSentences;
     size_t maxChunkSkip = 2 * sentences.size() / maxSentences;
-    double totalWeight = 0;
+    double totalProbability = 0;
 
-    std::vector<std::pair<std::string, double> >::const_iterator i;
+    std::vector<Term>::const_iterator i;
     for(i = terms.begin(); i != terms.end(); ++i) {
-        totalWeight += i->second;
+        totalProbability += i->probability;
     }
 
     double beta = 0.0;
@@ -174,17 +133,17 @@ std::string summarize(TermFinder &termFinder, const std::string &text, const std
         ++numTerms;
 
         // NOTE Use roulette based selection, so non-optimal terms can appear in the summary.
-        beta += ( ((double) (rand() % 200) / 100) * totalWeight) / totalWeight;
+        beta += ((double) (rand() % 200) / 100) * totalProbability;
 
         do {
             if(++i == terms.end()) {
                 i = terms.begin();
             }
 
-            beta -= ((double) i->second) / totalWeight;
+            beta -= i->probability;
         } while (beta > 0.0);
 
-        termFinder.set(i->first);
+        termFinder.set(i->label);
 
         std::vector<std::string>::iterator sentence = lastSentence;
         size_t chunkSkip = maxChunkSkip;
@@ -207,28 +166,13 @@ std::string summarize(TermFinder &termFinder, const std::string &text, const std
     return summary;
 }
 
-bool pairCompare(const std::pair<std::string, double> &a, const std::pair<std::string, double> &b) {
-    return (a.second > b.second);
-}
-
-std::vector<std::pair<std::string, double> > toPairVector(const std::map<std::string, double> &map) {
-    std::vector<std::pair<std::string, double> > vec;
-    vec.reserve(map.size());
-
-    std::map<std::string, double>::const_iterator i;
-    for(i = map.begin(); i != map.end(); ++i) {
-        vec.push_back(std::make_pair(i->first, i->second));
+ClsResult* classifyImpl(const std::string &text, const std::map<std::string, size_t> &terms) {
+    if(terms.size() == 0) {
+        return NULL;
     }
 
-    std::sort(vec.begin(), vec.end(), &pairCompare);
-    return vec;
-}
-
-ClsResult* classifyImpl(const std::string &text, const std::map<std::string, size_t> &terms) {
-    assert(terms.size() != 0);
-
-    std::vector<std::pair<std::string, double> > mapping;
-    mapping = toPairVector(ontoMapping(text, normalize(saturate(terms))));
+    std::vector<Term> mapping;
+    mapping = toTermVector(ontoMapping(text, normalize(saturate(terms))));
 
     if(mapping.size() == 0) {
         return NULL;
@@ -237,14 +181,10 @@ ClsResult* classifyImpl(const std::string &text, const std::map<std::string, siz
     ClsResult *result = new ClsResult();
 
     result->terms = mapping;
-    result->bestTerm = mapping[0].first;
-    result->maxScore = mapping[0].second;
-    result->summary = "";
-
     return result;
 }
 
-ClsResult* classify(const std::string &text, const std::map<std::string, size_t> &terms) {
+Classification* classify(const std::string &text, const std::map<std::string, size_t> &terms) {
     ClsResult *result = classifyImpl(text, terms);
 
     if(result == NULL) {
@@ -257,21 +197,10 @@ ClsResult* classify(const std::string &text, const std::map<std::string, size_t>
     return result;
 }
 
-std::map<std::string, size_t> lowerize(const std::map<std::string, size_t> &map) {
-    std::map<std::string, size_t> lowerized;
-    std::map<std::string, size_t>::const_iterator i;
-
-    for(i = map.begin(); i != map.end(); ++i) {
-        std::string str = i->first;
-        lowerized[toLower(str)] = i->second;
-    }
-    return lowerized;
-
-}
-
-ClsResult* iclassify(const std::string &text, const std::map<std::string, size_t> &terms) {
+Classification* iclassify(const std::string &text, const std::map<std::string, size_t> &terms) {
     std::string textCopy = text;
-    ClsResult *result = classifyImpl(toLower(textCopy), lowerize(terms));
+    Classification *result = classifyImpl(toLower(textCopy), lowerize(terms));
+
     if(result == NULL) {
         return NULL;
     }

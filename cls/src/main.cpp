@@ -6,19 +6,17 @@
 
 #include "classifier.hpp"
 
-void present(ClsResult *result) {
+void present(Classification *result) {
     if(result == NULL) {
         std::cout << "Unable to classify this publication. :(\n";
         return;
     }
 
-    std::cout << "Best match:\n";
-    std::cout << result->bestTerm << " --> " << result->maxScore << "\n";
-    std::cout << "Other matches:\n";
+    std::vector<Term>::iterator i;
 
-    std::vector<std::pair<std::string, double> >::iterator i;
+    std::cout << "Best matches:\n";
     for(i = result->terms.begin(); i != result->terms.end(); ++i) {
-        std::cout << i->first << " --> " << i->second << "\n";
+        std::cout << i->label << " --> " << i->probability << "\n";
     }
     std::cout << "Summary: \n" << result->summary << "\n";
 }
