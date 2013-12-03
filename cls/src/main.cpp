@@ -33,8 +33,8 @@ std::string readFile(std::string fileName) {
 }
 
 int main(int argc, char** argv) {
-    if(argc < 4) {
-        std::cout << "USAGE: " << argv[0] << " (i|s) PUB.txt terms ...\n";
+    if(argc < 2) {
+        std::cout << "USAGE: " << argv[0] << " (i|s) PUB.txt\n";
         return 1;
     }
 
@@ -44,15 +44,16 @@ int main(int argc, char** argv) {
     } else if (strncmp(argv[1], "s", 1) == 0) {
         caseSensitive = true;
     } else {
-        std::cout << "USAGE: " << argv[0] << " (i|s) PUB.txt terms ...\n";
+        std::cout << "USAGE: " << argv[0] << " (i|s) PUB.txt\n";
         return 1;
     }
 
     std::string text = readFile(argv[2]);
     std::map<std::string, size_t> terms;
 
-    for(size_t i = 3; i < argc; ++i) {
-        terms[argv[i]] = 1;
+    std::string term;
+    while(std::getline(std::cin, term)) {
+        terms[term] = 0;
     }
 
     classifySeed(time(NULL));

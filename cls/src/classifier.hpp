@@ -12,7 +12,7 @@
 
 struct ClsResult {
     std::vector<std::pair<std::string, double> > terms;
-    size_t maxScore;
+    double maxScore;
     std::string bestTerm;
     std::string summary;
 };
