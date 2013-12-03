@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+#include <utility>
 #include <fstream>
 
 #include "classifier.hpp"
@@ -15,7 +16,7 @@ void present(ClsResult *result) {
     std::cout << result->bestTerm << " --> " << result->maxScore << "\n";
     std::cout << "Other matches:\n";
 
-    std::map<std::string, size_t>::iterator i;
+    std::vector<std::pair<std::string, double> >::iterator i;
     for(i = result->terms.begin(); i != result->terms.end(); ++i) {
         std::cout << i->first << " --> " << i->second << "\n";
     }
@@ -48,10 +49,10 @@ int main(int argc, char** argv) {
     }
 
     std::string text = readFile(argv[2]);
-    std::vector<std::string> terms;
+    std::map<std::string, size_t> terms;
 
     for(size_t i = 3; i < argc; ++i) {
-        terms.push_back(argv[i]);
+        terms[argv[i]] = 1;
     }
 
     classifySeed(time(NULL));

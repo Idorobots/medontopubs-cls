@@ -105,7 +105,7 @@ class ITermFinder : public TermFinder {
     }
 };
 
-std::string summarize(TermFinder &termFinder, const std::string &text, const std::map<std::string, size_t> &terms) {
+std::string summarize(TermFinder &termFinder, const std::string &text, const std::vector<std::pair<std::string, double> > &terms) {
     std::string summary;
     std::vector<std::string> sentences = split(text, '.');
 
@@ -114,7 +114,7 @@ std::string summarize(TermFinder &termFinder, const std::string &text, const std
     size_t maxChunkSkip = 2 * sentences.size() / maxSentences;
     size_t totalWeight = 0;
 
-    std::map<std::string, size_t>::const_iterator i;
+    std::vector<std::pair<std::string, double> >::const_iterator i;
 
     for(i = terms.begin(); i != terms.end(); ++i) {
         totalWeight += i->second;
@@ -177,6 +177,16 @@ std::string findBest(const std::map<std::string, size_t> &terms) {
     return best;
 }
 
+std::vector<std::pair<std::string, double> > toPairVector(const std::map<std::string, size_t> &map) {
+    std::vector<std::pair<std::string, double> > vec;
+    std::map<std::string, size_t>::const_iterator i;
+    for(i = map.begin(); i != map.end(); ++i) {
+        vec.push_back(std::make_pair(i->first, (double) i->second));
+    }
+
+    return vec;
+}
+
 ClsResult* classifyImpl(const std::string &text, const std::vector<std::string> &terms) {
     assert(terms.size() != 0);
 
@@ -188,7 +198,7 @@ ClsResult* classifyImpl(const std::string &text, const std::vector<std::string> 
 
     ClsResult *result = new ClsResult();
 
-    result->terms = mapping;
+    result->terms = toPairVector(mapping);
     result->bestTerm = findBest(mapping);
     result->maxScore = mapping[result->bestTerm];
     result->summary = "";
@@ -196,8 +206,19 @@ ClsResult* classifyImpl(const std::string &text, const std::vector<std::string> 
     return result;
 }
 
-ClsResult* classify(const std::string &text, const std::vector<std::string> &terms) {
-    ClsResult *result = classifyImpl(text, terms);
+std::vector<std::string> toVector(const std::map<std::string, size_t> &map) {
+    std::vector<std::string> vec;
+
+    for(std::map<std::string, size_t>::const_iterator i = map.begin(); i != map.end(); ++i) {
+        vec.push_back(i->first);
+    }
+
+    return vec;
+}
+
+ClsResult* classify(const std::string &text, const std::map<std::string, size_t> &terms) {
+    std::vector<std::string> termsVec = toVector(terms);
+    ClsResult *result = classifyImpl(text, termsVec);
     if(result == NULL) {
         return NULL;
     }
@@ -208,9 +229,9 @@ ClsResult* classify(const std::string &text, const std::vector<std::string> &ter
     return result;
 }
 
-ClsResult* iclassify(const std::string &text, const std::vector<std::string> &terms) {
+ClsResult* iclassify(const std::string &text, const std::map<std::string, size_t> &terms) {
     std::string textCopy = text;
-    std::vector<std::string> termsCopy = terms;
+    std::vector<std::string> termsCopy = toVector(terms);
     toLower(textCopy);
     std::transform(termsCopy.begin(), termsCopy.end(), termsCopy.begin(), ::toLower);
 
