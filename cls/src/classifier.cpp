@@ -155,7 +155,7 @@ std::string summarize(TermFinder &termFinder, const std::string &text, const std
             --chunkSkip;
         }
 
-        if(chunkSkip != 0 && sentence != sentences.end()) {
+        if(sentence != sentences.end()) {
             summary.append(*sentence);
             summary.append(".");
             ++numSentences;
