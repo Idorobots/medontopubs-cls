@@ -6,19 +6,14 @@
 
 #include "classifier.hpp"
 
-void present(Classification *result) {
-    if(result == NULL) {
-        std::cout << "Unable to classify this publication. :(\n";
-        return;
-    }
-
-    std::vector<Term>::iterator i;
+void present(const Classification &result) {
+    std::vector<Term>::const_iterator i;
 
     std::cout << "Best matches:\n";
-    for(i = result->terms.begin(); i != result->terms.end(); ++i) {
+    for(i = result.terms.begin(); i != result.terms.end(); ++i) {
         std::cout << i->label << " --> " << i->probability << "\n";
     }
-    std::cout << "Summary: \n" << result->summary << "\n";
+    std::cout << "Summary: \n" << result.summary << "\n";
 }
 
 std::string readFile(std::string fileName) {
@@ -55,6 +50,14 @@ int main(int argc, char** argv) {
     }
 
     classifySeed(time(NULL));
-    present(caseSensitive ? classify(text, terms) : iclassify(text, terms));
+    Classification result;
+    bool success = (caseSensitive ? classify(result, text, terms) : iclassify(result, text, terms));
+
+    if(!success) {
+        std::cout << "Unable to classify this publication. :(\n";
+        return 1;
+    }
+
+    present(result);
     return 0;
 }

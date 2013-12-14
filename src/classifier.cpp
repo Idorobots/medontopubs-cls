@@ -166,49 +166,47 @@ std::string summarize(TermFinder &termFinder, const std::string &text, const std
     return summary;
 }
 
-ClsResult* classifyImpl(const std::string &text, const std::map<std::string, size_t> &terms) {
+bool classifyImpl(Classification &result, const std::string &text, const std::map<std::string, size_t> &terms) {
     if(terms.size() == 0) {
-        return NULL;
+        return false;
     }
 
     std::vector<Term> mapping;
     mapping = toTermVector(ontoMapping(text, normalize(saturate(terms))));
 
     if(mapping.size() == 0) {
-        return NULL;
+        return false;
     }
 
-    ClsResult *result = new ClsResult();
-
-    result->terms = mapping;
-    return result;
+    result.terms = mapping;
+    return true;
 }
 
-Classification* classify(const std::string &text, const std::map<std::string, size_t> &terms) {
-    ClsResult *result = classifyImpl(text, terms);
+bool classify(Classification &result, const std::string &text, const std::map<std::string, size_t> &terms) {
+    bool success = classifyImpl(result, text, terms);
 
-    if(result == NULL) {
-        return NULL;
+    if(!success) {
+        return false;
     }
 
     TermFinder tf;
-    result->summary = summarize(tf, text, result->terms);
+    result.summary = summarize(tf, text, result.terms);
 
-    return result;
+    return true;
 }
 
-Classification* iclassify(const std::string &text, const std::map<std::string, size_t> &terms) {
+bool iclassify(Classification &result, const std::string &text, const std::map<std::string, size_t> &terms) {
     std::string textCopy = text;
-    Classification *result = classifyImpl(toLower(textCopy), lowerize(terms));
+    bool success = classifyImpl(result, toLower(textCopy), lowerize(terms));
 
-    if(result == NULL) {
-        return NULL;
+    if(!success) {
+        return false;
     }
 
     ITermFinder tf;
-    result->summary = summarize(tf, text, result->terms);
+    result.summary = summarize(tf, text, result.terms);
 
-    return result;
+    return true;
 }
 
 void classifySeed(size_t seed) {

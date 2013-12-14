@@ -21,12 +21,10 @@ struct Classification {
 };
 
 // Classify text using terms.
-Classification* classify(const std::string &text, const std::map<std::string, size_t> &terms);
+bool classify(Classification &result, const std::string &text, const std::map<std::string, size_t> &terms);
 
 // Classify text using terms disregarding letter case.
-Classification* iclassify(const std::string &text, const std::map<std::string, size_t> &terms);
-
-typedef Classification ClsResult; // FIXME Deprecated.
+bool iclassify(Classification &result, const std::string &text, const std::map<std::string, size_t> &terms);
 
 // Used to seed the rng of the summarizer.
 void classifySeed(size_t seed);
